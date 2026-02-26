@@ -1,0 +1,16 @@
+node_modules
+dist
+.git
+.replit
+replit.nix
+replit.md
+.cache
+.config
+*.log
+logs
+.env
+.env.local
+.env.production
+public/uploads
+public/reviews
+DEPLOY.md

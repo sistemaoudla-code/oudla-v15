@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  oudla:
+    build: .
+    container_name: oudla-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - TRUST_PROXY=true
+    volumes:
+      - uploads:/app/public/uploads
+      - reviews:/app/public/reviews
+      - logs:/app/logs
+
+volumes:
+  uploads:
+  reviews:
+  logs:
