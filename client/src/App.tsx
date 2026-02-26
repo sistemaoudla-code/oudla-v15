@@ -91,81 +91,9 @@ function Router() {
   );
 }
 
-function useContentProtection() {
-  useEffect(() => {
-    const isAdmin = window.location.pathname.startsWith("/admin");
-    if (isAdmin) return;
-
-    const blockEvent = (e: Event) => { e.preventDefault(); return false; };
-    const blockKeys = (e: KeyboardEvent) => {
-      if (
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C" || e.key === "K")) ||
-        (e.ctrlKey && (e.key === "u" || e.key === "s" || e.key === "p" || e.key === "a")) ||
-        (e.metaKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C" || e.key === "K")) ||
-        (e.metaKey && (e.key === "u" || e.key === "s" || e.key === "p" || e.key === "a"))
-      ) {
-        e.preventDefault();
-        return false;
-      }
-    };
-
-    const blockPrint = (e: Event) => { e.preventDefault(); };
-
-    (function blockConsole() {
-      const noop = () => {};
-      const props = ["log", "debug", "info", "warn", "error", "table", "trace", "dir", "group", "groupEnd", "time", "timeEnd"];
-      props.forEach(p => { try { (console as any)[p] = noop; } catch {} });
-    })();
-
-    document.addEventListener("contextmenu", blockEvent);
-    document.addEventListener("keydown", blockKeys);
-    document.addEventListener("dragstart", blockEvent);
-    document.addEventListener("selectstart", blockEvent);
-    document.addEventListener("copy", blockEvent);
-    document.addEventListener("cut", blockEvent);
-    window.addEventListener("beforeprint", blockPrint);
-
-    const style = document.createElement("style");
-    style.textContent = `
-      * { -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; }
-      img, video, svg, canvas { pointer-events: none !important; -webkit-user-drag: none !important; }
-      img { content-visibility: auto; }
-      input, textarea, [contenteditable="true"] { -webkit-user-select: text !important; -moz-user-select: text !important; user-select: text !important; }
-      @media print { body { display: none !important; } }
-    `;
-    document.head.appendChild(style);
-
-    const images = document.querySelectorAll("img");
-    const observer = new MutationObserver(() => {
-      document.querySelectorAll("img:not([draggable='false'])").forEach(img => {
-        img.setAttribute("draggable", "false");
-        img.setAttribute("oncontextmenu", "return false");
-      });
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-    images.forEach(img => {
-      img.setAttribute("draggable", "false");
-      img.setAttribute("oncontextmenu", "return false");
-    });
-
-    return () => {
-      document.removeEventListener("contextmenu", blockEvent);
-      document.removeEventListener("keydown", blockKeys);
-      document.removeEventListener("dragstart", blockEvent);
-      document.removeEventListener("selectstart", blockEvent);
-      document.removeEventListener("copy", blockEvent);
-      document.removeEventListener("cut", blockEvent);
-      window.removeEventListener("beforeprint", blockPrint);
-      observer.disconnect();
-      style.remove();
-    };
-  }, []);
-}
 
 function App() {
   const [location] = useLocation();
-  useContentProtection();
 
   useEffect(() => {
     const stored = localStorage.getItem('theme');
