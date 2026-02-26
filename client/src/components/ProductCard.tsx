@@ -71,25 +71,28 @@ const ProductCard = memo(function ProductCard({
   };
 
   const handleDragEnd = (_: any, info: any) => {
+    const threshold = 50;
+    if (images.length > 1) {
+      if (info.offset.x < -threshold) {
+        setCurrentImageIndex((prev) => (prev + 1) % images.length);
+        isDragging.current = true;
+      } else if (info.offset.x > threshold) {
+        setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+        isDragging.current = true;
+      }
+    }
     setTimeout(() => {
       isDragging.current = false;
-    }, 50);
-
-    const threshold = 50;
-    if (images.length <= 1) return;
-
-    if (info.offset.x < -threshold) {
-      setCurrentImageIndex((prev) => (prev + 1) % images.length);
-    } else if (info.offset.x > threshold) {
-      setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
-    }
+    }, 100);
   };
 
-  const handleTap = () => {
+  const handleImageClick = useCallback((e: React.MouseEvent) => {
     if (!isDragging.current) {
+      e.preventDefault();
+      e.stopPropagation();
       setLocation(`/${slug || sku || id}`);
     }
-  };
+  }, [slug, sku, id, setLocation]);
 
   const formatPrice = useCallback((value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -164,7 +167,7 @@ const ProductCard = memo(function ProductCard({
             dragElastic={0.2}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
-            onTap={handleTap}
+            onClick={handleImageClick}
             style={{ scale }}
             className="w-full h-full object-cover select-none"
             {...(!disableLazyLoading && { loading: "lazy" as const, decoding: "async" as const })}
