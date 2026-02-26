@@ -64,15 +64,11 @@ const ProductCard = memo(function ProductCard({
   });
 
   const prefetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wasDragged = useRef(false);
+  const pointerStartX = useRef(0);
+  const pointerStartY = useRef(0);
 
   const handleDragEnd = (_: any, info: any) => {
     const threshold = 50;
-    const movedX = Math.abs(info.offset.x);
-    if (movedX > 5) {
-      wasDragged.current = true;
-      setTimeout(() => { wasDragged.current = false; }, 300);
-    }
     if (images.length > 1) {
       if (info.offset.x < -threshold) {
         setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -82,11 +78,17 @@ const ProductCard = memo(function ProductCard({
     }
   };
 
-  const handleNavigate = useCallback(() => {
-    if (wasDragged.current) {
-      return;
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    pointerStartX.current = e.clientX;
+    pointerStartY.current = e.clientY;
+  }, []);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    const dx = Math.abs(e.clientX - pointerStartX.current);
+    const dy = Math.abs(e.clientY - pointerStartY.current);
+    if (dx < 8 && dy < 8) {
+      setLocation(`/${slug || sku || id}`);
     }
-    setLocation(`/${slug || sku || id}`);
   }, [slug, sku, id, setLocation]);
 
   const handlePrevImage = useCallback((e: React.MouseEvent) => {
@@ -162,7 +164,8 @@ const ProductCard = memo(function ProductCard({
         <div 
           className="aspect-[3/4] bg-muted overflow-hidden cursor-pointer relative rounded-t-xl"
           data-testid={`image-product-${id}`}
-          onClick={handleNavigate}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
         >
           <motion.img
             key={currentImageIndex}
