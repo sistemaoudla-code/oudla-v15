@@ -64,34 +64,29 @@ const ProductCard = memo(function ProductCard({
   });
 
   const prefetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isDragging = useRef(false);
-
-  const handleDragStart = () => {
-    isDragging.current = true;
-  };
+  const wasDragged = useRef(false);
 
   const handleDragEnd = (_: any, info: any) => {
     const threshold = 50;
+    const movedX = Math.abs(info.offset.x);
+    if (movedX > 5) {
+      wasDragged.current = true;
+      setTimeout(() => { wasDragged.current = false; }, 300);
+    }
     if (images.length > 1) {
       if (info.offset.x < -threshold) {
         setCurrentImageIndex((prev) => (prev + 1) % images.length);
-        isDragging.current = true;
       } else if (info.offset.x > threshold) {
         setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
-        isDragging.current = true;
       }
     }
-    setTimeout(() => {
-      isDragging.current = false;
-    }, 100);
   };
 
-  const handleImageClick = useCallback((e: React.MouseEvent) => {
-    if (!isDragging.current) {
-      e.preventDefault();
-      e.stopPropagation();
-      setLocation(`/${slug || sku || id}`);
+  const handleNavigate = useCallback(() => {
+    if (wasDragged.current) {
+      return;
     }
+    setLocation(`/${slug || sku || id}`);
   }, [slug, sku, id, setLocation]);
 
   const formatPrice = useCallback((value: number) => {
@@ -147,7 +142,7 @@ const ProductCard = memo(function ProductCard({
   return (
     <Card
       ref={cardRef}
-      className="group overflow-visible hover-elevate cursor-pointer border-0 shadow-sm"
+      className="group overflow-hidden cursor-pointer border-0 shadow-sm"
       onMouseEnter={handlePrefetch}
       onMouseLeave={cancelPrefetch}
       onTouchStart={handlePrefetch}
@@ -155,8 +150,9 @@ const ProductCard = memo(function ProductCard({
       <div className="relative">
         {/* Product Image Carousel */}
         <div 
-          className="aspect-[3/4] bg-muted overflow-hidden cursor-pointer relative touch-pan-y rounded-t-xl"
+          className="aspect-[3/4] bg-muted overflow-hidden cursor-pointer relative rounded-t-xl"
           data-testid={`image-product-${id}`}
+          onClick={handleNavigate}
         >
           <motion.img
             key={currentImageIndex}
@@ -165,9 +161,7 @@ const ProductCard = memo(function ProductCard({
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.2}
-            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
-            onClick={handleImageClick}
             style={{ scale }}
             className="w-full h-full object-cover select-none"
             {...(!disableLazyLoading && { loading: "lazy" as const, decoding: "async" as const })}
@@ -209,7 +203,7 @@ const ProductCard = memo(function ProductCard({
         </div>
         
         {/* Actions */}
-        <div className="absolute top-3 right-3 flex flex-col gap-2 transition-opacity z-20 opacity-0 group-hover:opacity-100">
+        <div className="absolute top-3 right-3 flex flex-col gap-2 transition-opacity z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible">
           <Button
             variant="secondary"
             size="icon"
@@ -224,7 +218,7 @@ const ProductCard = memo(function ProductCard({
       
       <Link href={`/${slug || sku || id}`}>
         <CardContent className="px-4 pt-3 pb-4 cursor-pointer">
-          <p className="text-lg font-medium text-foreground leading-snug tracking-tight" data-testid={`text-name-${id}`}>
+          <p className="text-lg font-medium text-foreground leading-snug tracking-tight line-clamp-1" data-testid={`text-name-${id}`}>
             {name}
           </p>
           <div className="mt-1.5">
