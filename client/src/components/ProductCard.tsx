@@ -199,6 +199,8 @@ const ProductCard = memo(function ProductCard({
             <>
               <button
                 onClick={handlePrevImage}
+                onPointerDown={(e) => e.stopPropagation()}
+                onPointerUp={(e) => e.stopPropagation()}
                 className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-7 w-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 product-card-arrows transition-opacity"
                 data-testid={`button-prev-image-${id}`}
               >
@@ -206,6 +208,8 @@ const ProductCard = memo(function ProductCard({
               </button>
               <button
                 onClick={handleNextImage}
+                onPointerDown={(e) => e.stopPropagation()}
+                onPointerUp={(e) => e.stopPropagation()}
                 className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-7 w-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 product-card-arrows transition-opacity"
                 data-testid={`button-next-image-${id}`}
               >
