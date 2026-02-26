@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { storage } from "./storage";
 import { db } from "./db";
 import { orders } from "@shared/schema";
@@ -2133,21 +2133,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete product
   app.delete("/api/admin/products/:id", requireAdmin, async (req, res) => {
     try {
-      const images = await storage.getProductImages(req.params.id);
-      const success = await storage.deleteProduct(req.params.id);
-      
-      if (success) {
+      const productId = req.params.id;
+
+      // Delete all dependent records before deleting the product (each wrapped in try/catch)
+      try {
+        const images = await storage.getProductImages(productId);
         for (const img of images) {
+          try { await storage.deleteProductImage(img.id); } catch (err) {}
           const imgUrl = img.imageUrl;
           if (imgUrl.startsWith("/uploads/") || imgUrl.startsWith("/reviews/")) {
-            try {
-              const filepath = path.join(process.cwd(), 'public', imgUrl);
-              await fs.unlink(filepath);
-            } catch (err) {}
-          } else {
-            await deleteFromStorage(imgUrl);
+            try { await fs.unlink(path.join(process.cwd(), 'public', imgUrl)); } catch (err) {}
+          } else if (imgUrl.startsWith("http")) {
+            try { await deleteFromStorage(imgUrl); } catch (err) {}
           }
         }
+      } catch (err) {}
+
+      try {
+        const reviews = await storage.getAdminProductReviews(productId);
+        for (const review of reviews) {
+          try { await storage.deleteAdminProductReview(review.id); } catch (err) {}
+        }
+      } catch (err) {}
+
+      try {
+        const measurementFields = await storage.getProductMeasurementFields(productId);
+        for (const field of measurementFields) {
+          try { await storage.deleteProductSizeMeasurementsByField(field.id); } catch (err) {}
+          try { await storage.deleteProductMeasurementField(field.id); } catch (err) {}
+        }
+      } catch (err) {}
+
+      try { await storage.updateInstallmentOptions(productId, []); } catch (err) {}
+
+      try {
+        const coupons = await storage.getProductCoupons(productId);
+        for (const coupon of coupons) {
+          try { await storage.deleteProductCoupon(coupon.id); } catch (err) {}
+        }
+      } catch (err) {}
+
+      // Detach order_items from this product (preserve order history, allow product deletion)
+      try {
+        await db.execute(sql`ALTER TABLE order_items ALTER COLUMN product_id DROP NOT NULL`);
+        await db.execute(sql`ALTER TABLE order_items DROP CONSTRAINT IF EXISTS order_items_product_id_products_id_fk`);
+        await db.execute(sql`UPDATE order_items SET product_id = NULL WHERE product_id = ${productId}`);
+        await db.execute(sql`ALTER TABLE order_items ADD CONSTRAINT order_items_product_id_products_id_fk FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL`);
+      } catch (err) {
+        console.error("Error detaching order_items:", err);
+      }
+
+      const success = await storage.deleteProduct(productId);
+      
+      if (success) {
         cache.invalidate("products:list");
       }
       
