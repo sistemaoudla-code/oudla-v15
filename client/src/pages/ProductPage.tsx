@@ -848,14 +848,14 @@ export default function ProductPage() {
                 <>
                   <button
                     onClick={() => carouselApi?.scrollPrev()}
-                    className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 h-11 w-11 items-center justify-center rounded-full bg-white/80 dark:bg-black/60 backdrop-blur-lg shadow-lg text-black/70 dark:text-white/70 opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 hover:bg-white dark:hover:bg-black/80 hover:text-black dark:hover:text-white active:scale-95 z-20"
+                    className="product-page-arrows absolute left-4 top-1/2 -translate-y-1/2 h-11 w-11 items-center justify-center rounded-full bg-white/80 dark:bg-black/60 backdrop-blur-lg shadow-lg text-black/70 dark:text-white/70 opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 hover:bg-white dark:hover:bg-black/80 hover:text-black dark:hover:text-white active:scale-95 z-20"
                     data-testid="button-carousel-prev"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
                   <button
                     onClick={() => carouselApi?.scrollNext()}
-                    className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 h-11 w-11 items-center justify-center rounded-full bg-white/80 dark:bg-black/60 backdrop-blur-lg shadow-lg text-black/70 dark:text-white/70 opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 hover:bg-white dark:hover:bg-black/80 hover:text-black dark:hover:text-white active:scale-95 z-20"
+                    className="product-page-arrows absolute right-4 top-1/2 -translate-y-1/2 h-11 w-11 items-center justify-center rounded-full bg-white/80 dark:bg-black/60 backdrop-blur-lg shadow-lg text-black/70 dark:text-white/70 opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 hover:bg-white dark:hover:bg-black/80 hover:text-black dark:hover:text-white active:scale-95 z-20"
                     data-testid="button-carousel-next"
                   >
                     <ChevronRight className="h-5 w-5" />
