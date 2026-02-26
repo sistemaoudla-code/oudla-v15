@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart } from "lucide-react";
+import { Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, memo, useCallback, useRef, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, useScroll, useSpring, useTransform, AnimatePresence } from "framer-motion";
@@ -89,6 +89,16 @@ const ProductCard = memo(function ProductCard({
     setLocation(`/${slug || sku || id}`);
   }, [slug, sku, id, setLocation]);
 
+  const handlePrevImage = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  }, [images.length]);
+
+  const handleNextImage = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  }, [images.length]);
+
   const formatPrice = useCallback((value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -142,7 +152,7 @@ const ProductCard = memo(function ProductCard({
   return (
     <Card
       ref={cardRef}
-      className="group overflow-hidden cursor-pointer border-0 shadow-sm"
+      className="product-card overflow-hidden cursor-pointer border-0 shadow-sm"
       onMouseEnter={handlePrefetch}
       onMouseLeave={cancelPrefetch}
       onTouchStart={handlePrefetch}
@@ -163,7 +173,7 @@ const ProductCard = memo(function ProductCard({
             dragElastic={0.2}
             onDragEnd={handleDragEnd}
             style={{ scale }}
-            className="w-full h-full object-cover select-none"
+            className="w-full h-full object-cover select-none product-card-img"
             {...(!disableLazyLoading && { loading: "lazy" as const, decoding: "async" as const })}
           />
 
@@ -179,6 +189,26 @@ const ProductCard = memo(function ProductCard({
                 />
               ))}
             </div>
+          )}
+
+          {/* Desktop Arrow Navigation - visibility controlled by CSS media query */}
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={handlePrevImage}
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-7 w-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 product-card-arrows transition-opacity"
+                data-testid={`button-prev-image-${id}`}
+              >
+                <ChevronLeft className="h-4 w-4 text-white" />
+              </button>
+              <button
+                onClick={handleNextImage}
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-7 w-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 product-card-arrows transition-opacity"
+                data-testid={`button-next-image-${id}`}
+              >
+                <ChevronRight className="h-4 w-4 text-white" />
+              </button>
+            </>
           )}
         </div>
         
@@ -202,8 +232,8 @@ const ProductCard = memo(function ProductCard({
           )}
         </div>
         
-        {/* Actions */}
-        <div className="absolute top-3 right-3 flex flex-col gap-2 transition-opacity z-20 opacity-0 invisible group-hover:opacity-100 group-hover:visible">
+        {/* Actions - only visible on hover for devices with mouse */}
+        <div className="absolute top-3 right-3 flex flex-col gap-2 transition-opacity z-20 opacity-0 invisible product-card-actions">
           <Button
             variant="secondary"
             size="icon"
