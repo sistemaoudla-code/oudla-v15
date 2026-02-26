@@ -17,10 +17,10 @@ export default function RelatedProducts({ currentProductId }: RelatedProductsPro
     queryKey: ['/api/products'],
     select: (data) => {
       const allItems = data.products || [];
-      const currentItem = allItems.find(item => item.id === currentProductId);
+      const currentItem = allItems.find(item => String(item.id) === String(currentProductId));
       
       const scoredItems = allItems
-        .filter(item => item.id !== currentProductId)
+        .filter(item => String(item.id) !== String(currentProductId))
         .map(item => {
           let score = 0;
           
