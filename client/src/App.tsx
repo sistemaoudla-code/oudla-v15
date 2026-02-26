@@ -64,12 +64,14 @@ const ProductCard = memo(function ProductCard({
   });
 
   const prefetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const dragOffset = useRef(0);
+  const wasDragged = useRef(false);
 
   const handleDragEnd = (_: any, info: any) => {
-    const movedX = Math.abs(info.offset.x);
-    dragOffset.current = movedX;
     const threshold = 50;
+    const movedX = Math.abs(info.offset.x);
+    if (movedX > 5) {
+      wasDragged.current = true;
+    }
     if (images.length > 1) {
       if (info.offset.x < -threshold) {
         setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -77,17 +79,14 @@ const ProductCard = memo(function ProductCard({
         setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
       }
     }
-    if (movedX >= 5) {
-      setTimeout(() => {
-        dragOffset.current = 0;
-      }, 300);
-    }
   };
 
-  const handleImageClick = useCallback((e: React.MouseEvent) => {
-    if (dragOffset.current < 5) {
-      setLocation(`/${slug || sku || id}`);
+  const handleNavigate = useCallback(() => {
+    if (wasDragged.current) {
+      wasDragged.current = false;
+      return;
     }
+    setLocation(`/${slug || sku || id}`);
   }, [slug, sku, id, setLocation]);
 
   const formatPrice = useCallback((value: number) => {
@@ -143,7 +142,7 @@ const ProductCard = memo(function ProductCard({
   return (
     <Card
       ref={cardRef}
-      className="group overflow-visible hover-elevate cursor-pointer border-0 shadow-sm"
+      className="group overflow-visible cursor-pointer border-0 shadow-sm"
       onMouseEnter={handlePrefetch}
       onMouseLeave={cancelPrefetch}
       onTouchStart={handlePrefetch}
@@ -151,8 +150,9 @@ const ProductCard = memo(function ProductCard({
       <div className="relative">
         {/* Product Image Carousel */}
         <div 
-          className="aspect-[3/4] bg-muted overflow-hidden cursor-pointer relative touch-pan-y rounded-t-xl"
+          className="aspect-[3/4] bg-muted overflow-hidden cursor-pointer relative rounded-t-xl"
           data-testid={`image-product-${id}`}
+          onClick={handleNavigate}
         >
           <motion.img
             key={currentImageIndex}
@@ -162,7 +162,6 @@ const ProductCard = memo(function ProductCard({
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.2}
             onDragEnd={handleDragEnd}
-            onClick={handleImageClick}
             style={{ scale }}
             className="w-full h-full object-cover select-none"
             {...(!disableLazyLoading && { loading: "lazy" as const, decoding: "async" as const })}
