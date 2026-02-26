@@ -112,15 +112,6 @@ function useContentProtection() {
 
     const blockPrint = (e: Event) => { e.preventDefault(); };
 
-    let devtoolsTimer: ReturnType<typeof setInterval>;
-    const detectDevTools = () => {
-      const threshold = 160;
-      if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
-        document.body.innerHTML = "";
-      }
-    };
-    devtoolsTimer = setInterval(detectDevTools, 2000);
-
     (function blockConsole() {
       const noop = () => {};
       const props = ["log", "debug", "info", "warn", "error", "table", "trace", "dir", "group", "groupEnd", "time", "timeEnd"];
@@ -166,7 +157,6 @@ function useContentProtection() {
       document.removeEventListener("copy", blockEvent);
       document.removeEventListener("cut", blockEvent);
       window.removeEventListener("beforeprint", blockPrint);
-      clearInterval(devtoolsTimer);
       observer.disconnect();
       style.remove();
     };
