@@ -401,4 +401,33 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .product-card-arrows,
+  .product-card-actions,
+  .product-page-arrows {
+    display: none;
+  }
+
+  @media not (pointer: coarse) {
+    .product-card-actions {
+      display: flex;
+      opacity: 0;
+      visibility: hidden;
+    }
+    .product-card:hover .product-card-actions {
+      opacity: 1;
+      visibility: visible;
+    }
+    .product-card-arrows {
+      display: flex;
+      opacity: 0;
+    }
+    .product-card:hover .product-card-arrows {
+      opacity: 1;
+    }
+    .product-page-arrows {
+      display: flex;
+      opacity: 0;
+    }
+  }
 }
